@@ -26,7 +26,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Activity, DollarSign, Layers, Sparkles, Timer } from "lucide-react";
+import { Activity, AlertTriangle, DollarSign, Layers, Sparkles, Timer } from "lucide-react";
+
+// Keys that appear on every scored pair — too noisy for the decision reasons chart
+const BOILERPLATE_REASON_KEYS = new Set([
+  "relation", "ml_score", "ml_threshold", "rule_score",
+  "exact", "fts", "trigram", "vector", "semantic", "llm_attrs",
+]);
 
 const confidenceColors: Record<string, string> = {
   "0.95-1.00": "var(--primary)",
@@ -63,12 +69,22 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
   const reasonData = (() => {
     const merge = data?.decision_reason_counts?.merge ?? {};
     const noMerge = data?.decision_reason_counts?.no_merge ?? {};
-    const keys = Array.from(new Set([...Object.keys(merge), ...Object.keys(noMerge)]));
+    const keys = Array.from(new Set([...Object.keys(merge), ...Object.keys(noMerge)]))
+      .filter((k) => !BOILERPLATE_REASON_KEYS.has(k));
     return keys
       .map((reason) => ({ reason, merge: merge[reason] ?? 0, no_merge: noMerge[reason] ?? 0 }))
       .sort((a, b) => b.merge + b.no_merge - (a.merge + a.no_merge))
-      .slice(0, 12);
+      .slice(0, 14);
   })();
+
+  const lowestConfidenceMerges = (data as Record<string, unknown> | undefined)?.lowest_confidence_accepted_merges as Array<{
+    dedupe_id: string;
+    canonical_name: string;
+    num_offers: number;
+    cluster_confidence: number;
+    source_ids: string[];
+    merge_reasons?: string[];
+  }> | undefined;
 
   const blockingData = data?.blocking
     ? Object.entries(data.blocking)
@@ -175,7 +191,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Decision reasons (top 12)</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Decision reasons</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer
                     config={{
@@ -245,6 +261,50 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
                 </CardContent>
               </Card>
             </div>
+
+            {lowestConfidenceMerges && lowestConfidenceMerges.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    Lowest-confidence accepted merges
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Canonical name</TableHead>
+                        <TableHead className="text-right">Offers</TableHead>
+                        <TableHead className="text-right">Conf.</TableHead>
+                        <TableHead>Merge reasons</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {lowestConfidenceMerges.map((g) => (
+                        <TableRow key={g.dedupe_id}>
+                          <TableCell>
+                            <Link href={`/runs/${runId}/groups/${g.dedupe_id}`} className="hover:underline">
+                              <div className="text-sm font-medium line-clamp-1">{g.canonical_name}</div>
+                              <div className="text-xs text-muted-foreground font-mono">{g.dedupe_id}</div>
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            <Badge variant="secondary">{g.num_offers}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{g.cluster_confidence.toFixed(3)}</span>
+                          </TableCell>
+                          <TableCell className="text-xs font-mono text-muted-foreground max-w-[240px]">
+                            <div className="line-clamp-2">{(g.merge_reasons ?? []).join("; ")}</div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </>
         ) : null}
       </div>

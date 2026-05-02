@@ -242,6 +242,44 @@ export type SearchResponse = {
   results: SearchResult[];
 };
 
+export type FeatureCoefficient = { feature: string; coefficient: number };
+
+export type ThresholdPoint = {
+  threshold: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  tp: number;
+  fp: number;
+  fn: number;
+};
+
+export type ModelMetrics = {
+  model_path?: string;
+  feature_columns?: string[];
+  threshold?: number;
+  target_precision?: number;
+  train_pairs?: number;
+  test_pairs?: number;
+  positive_pairs?: number;
+  negative_pairs?: number;
+  test_average_precision?: number;
+  test_precision?: number;
+  test_recall?: number;
+  test_f1?: number;
+  use_openai_embeddings?: boolean;
+  artifacts?: string[];
+};
+
+export type ModelInfoResponse = {
+  metrics: ModelMetrics;
+  feature_coefficients: FeatureCoefficient[];
+  threshold_curve: ThresholdPoint[];
+  false_positive_count: number;
+  false_negative_count: number;
+  top_risky_clusters: Array<Record<string, string>>;
+};
+
 export type ArtifactSearchResponse = {
   run_id: string;
   query: string;
@@ -259,6 +297,7 @@ export type ExplainResponse = {
 
 export const api = {
   health: () => request<{ ok: boolean; runs_root: string }>("/health"),
+  model: () => request<ModelInfoResponse>("/model"),
   listRuns: () => request<RunsResponse>("/runs"),
   summary: (runId: string) => request<SummaryReport>(`/runs/${runId}/summary`),
   products: (runId: string, params: Record<string, unknown> = {}) =>

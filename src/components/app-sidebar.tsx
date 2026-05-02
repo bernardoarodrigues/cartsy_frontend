@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRunStore } from "@/lib/run-store";
 import { cn } from "@/lib/utils";
-import { Boxes, GitMerge, Home, Network, Search, Share2, Sigma } from "lucide-react";
+import { BrainCircuit, Boxes, GitMerge, Home, Network, Search, Share2, Sigma } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Runs", icon: Home, scoped: false, exact: true },
+  { href: "/model", label: "Model", icon: BrainCircuit, scoped: false, exact: true },
   { href: "/runs/[id]", label: "Overview", icon: Sigma, scoped: true, exact: true },
   { href: "/runs/[id]/products", label: "Products", icon: Boxes, scoped: true, exact: false },
   { href: "/runs/[id]/groups", label: "Groups", icon: Network, scoped: true, exact: false },

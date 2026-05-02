@@ -11,17 +11,59 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-function parseFeatureScores(raw: string | undefined): { feature: string; value: number }[] {
+const ML_FEATURE_NAMES = new Set([
+  "same_retailer", "brand_exact", "brand_fuzzy", "title_token_set", "title_partial",
+  "category_exact", "model_token_jaccard", "salient_token_jaccard", "size_match",
+  "size_conflict", "pack_match", "pack_conflict", "price_ratio_diff", "price_both_present",
+  "identifier_any", "exact_ean", "exact_gtin", "exact_upc", "exact_asin",
+  "exact_sku_same_retailer", "exact_sku_cross_retailer", "lexical_sim", "trigram_sim",
+  "semantic_sim", "retrieval_layer_count", "variant_conflict",
+]);
+
+type FeatureEntry = { feature: string; value: number };
+
+function parseFeatureScores(raw: string | undefined): FeatureEntry[] {
   if (!raw) return [];
   return raw
     .split(";")
     .map((s) => s.trim())
     .filter(Boolean)
     .map((s) => {
-      const [feature, value] = s.split(":");
-      return { feature, value: Number(value) };
+      const colonAt = s.indexOf(":");
+      if (colonAt < 0) return null;
+      const feature = s.slice(0, colonAt);
+      const value = Number(s.slice(colonAt + 1));
+      return Number.isFinite(value) ? { feature, value } : null;
     })
-    .filter((x) => Number.isFinite(x.value));
+    .filter((x): x is FeatureEntry => x !== null);
+}
+
+function FeatureBar({ label, value, max = 1, negative = false }: { label: string; value: number; max?: number; negative?: boolean }) {
+  const pct = Math.min(100, Math.abs(value) / (max || 1) * 100);
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="w-44 font-mono text-muted-foreground truncate" title={label}>{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded-full ${negative && value < 0 ? "bg-destructive/70" : "bg-primary"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="w-12 text-right tabular-nums">{value.toFixed(3)}</span>
+    </div>
+  );
+}
+
+function FeatureSection({ title, features, showNegative = false }: { title: string; features: FeatureEntry[]; showNegative?: boolean }) {
+  if (features.length === 0) return null;
+  return (
+    <div className="space-y-1.5">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{title}</div>
+      {features.map((f) => (
+        <FeatureBar key={f.feature} label={f.feature} value={f.value} negative={showNegative} />
+      ))}
+    </div>
+  );
 }
 
 export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: string[] }) {
@@ -38,7 +80,26 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
     enabled: !!submitted,
   });
 
-  const features = data?.pair ? parseFeatureScores((data.pair as Record<string, string>).feature_scores) : [];
+  const allFeatures = data?.pair ? parseFeatureScores((data.pair as Record<string, string>).feature_scores) : [];
+
+  const primaryFeatures = allFeatures.filter((f) =>
+    ["ml_score", "rule_score", "hard_contradiction", "ml_threshold"].includes(f.feature)
+  );
+  const mlFeatures = allFeatures
+    .filter((f) => f.feature.startsWith("ml_") && ML_FEATURE_NAMES.has(f.feature.slice(3)))
+    .map((f) => ({ ...f, feature: f.feature.slice(3) }));
+  const retrievalFeatures = allFeatures.filter((f) =>
+    ["postgres_exact", "postgres_fts", "postgres_trigram", "postgres_vector", "semantic_sim"].includes(f.feature)
+  );
+  const ruleFeatures = allFeatures.filter(
+    (f) =>
+      !f.feature.startsWith("ml_") &&
+      !["ml_score", "rule_score", "hard_contradiction", "ml_threshold"].includes(f.feature) &&
+      !["postgres_exact", "postgres_fts", "postgres_trigram", "postgres_vector", "semantic_sim", "llm_attributes"].includes(f.feature)
+  );
+
+  const mlScore = allFeatures.find((f) => f.feature === "ml_score")?.value;
+  const isHardContradiction = (allFeatures.find((f) => f.feature === "hard_contradiction")?.value ?? 0) > 0;
 
   return (
     <Card>
@@ -70,7 +131,6 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
         </div>
 
         {error && <p className="text-sm text-destructive">{(error as Error).message}</p>}
-
         {isLoading && <Skeleton className="h-32 w-full" />}
 
         {data && (
@@ -84,29 +144,30 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
               <Card className="bg-muted/40"><CardContent className="p-4 text-sm">{data.message}</CardContent></Card>
             ) : data.pair ? (
               <Card>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-sm font-medium">Decision</span>
                     <Badge variant={(data.pair as Record<string, string>).decision === "merge" ? "default" : "outline"}>
                       {(data.pair as Record<string, string>).decision}
                     </Badge>
-                    <span className="text-sm text-muted-foreground">·</span>
-                    <span className="text-sm tabular-nums">score {Number((data.pair as Record<string, number>).score).toFixed(3)}</span>
+                    {mlScore !== undefined && (
+                      <>
+                        <span className="text-sm text-muted-foreground">·</span>
+                        <span className="text-sm">
+                          ML score <span className="font-semibold tabular-nums">{mlScore.toFixed(3)}</span>
+                        </span>
+                      </>
+                    )}
+                    {isHardContradiction && (
+                      <Badge variant="destructive" className="text-xs">hard contradiction</Badge>
+                    )}
                   </div>
-                  {features.length > 0 && (
-                    <div className="space-y-1.5">
-                      <div className="text-xs uppercase tracking-wide text-muted-foreground">Feature scores</div>
-                      {features.map((f) => (
-                        <div key={f.feature} className="flex items-center gap-2 text-xs">
-                          <span className="w-32 font-mono text-muted-foreground">{f.feature}</span>
-                          <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: `${Math.min(100, f.value * 100)}%` }} />
-                          </div>
-                          <span className="w-10 text-right tabular-nums">{f.value.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+
+                  <FeatureSection title="ML input features (26)" features={mlFeatures} showNegative />
+                  <FeatureSection title="Retrieval signals" features={retrievalFeatures} />
+                  <FeatureSection title="Rule features" features={ruleFeatures} />
+                  <FeatureSection title="Scores" features={primaryFeatures} />
+
                   <div>
                     <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Explanation</div>
                     <div className="text-xs font-mono whitespace-pre-wrap">{(data.pair as Record<string, string>).explanation}</div>

@@ -70,7 +70,7 @@ export default function RunsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.runs.map((run) => (
+                {[...data.runs].sort((a, b) => b.run_id.localeCompare(a.run_id)).map((run) => (
                   <TableRow
                     key={run.run_id}
                     className="cursor-pointer hover:bg-muted/50"
