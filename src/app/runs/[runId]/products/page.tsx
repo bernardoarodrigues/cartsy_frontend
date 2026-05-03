@@ -55,13 +55,13 @@ export default function ProductsPage({ params }: { params: Promise<{ runId: stri
         title="Products"
         description="Search, filter, and inspect every offer in the assignments table."
       />
-      <div className="p-6 space-y-4">
+      <div className="px-6 py-6 space-y-4">
         <Card>
-          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-            <div className="md:col-span-4">
-              <Label>Search</Label>
-              <div className="relative mt-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-end">
+            <div className="md:col-span-4 space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Search</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input
                   placeholder="name, brand, sku, source_id, dedupe_id…"
                   value={q}
@@ -70,28 +70,30 @@ export default function ProductsPage({ params }: { params: Promise<{ runId: stri
                 />
               </div>
             </div>
-            <div className="md:col-span-2">
-              <Label>Retailer</Label>
+            <div className="md:col-span-2 space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Retailer</Label>
               <Select value={retailer} onValueChange={(v) => { setRetailer(v ?? "all"); setOffset(0); }}>
-                <SelectTrigger className="mt-1 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {RETAILERS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
-              <Label>Decision</Label>
+            <div className="md:col-span-2 space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Decision</Label>
               <Select value={decision} onValueChange={(v) => { setDecision(v as typeof decision); setOffset(0); }}>
-                <SelectTrigger className="mt-1 w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {DECISIONS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-3">
-              <Label>Min confidence: <span className="tabular-nums">{minConfidence.toFixed(2)}</span></Label>
+            <div className="md:col-span-3 space-y-2 pb-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground">Min confidence</Label>
+                <span className="text-xs tabular-nums font-medium">{minConfidence.toFixed(2)}</span>
+              </div>
               <Slider
-                className="mt-3"
                 min={0}
                 max={1}
                 step={0.01}
@@ -99,18 +101,18 @@ export default function ProductsPage({ params }: { params: Promise<{ runId: stri
                 onValueChange={(v) => { setMinConfidence(Array.isArray(v) ? v[0] : (v as number)); setOffset(0); }}
               />
             </div>
-            <div className="md:col-span-1 text-right text-xs text-muted-foreground">
+            <div className="md:col-span-1 text-right text-xs text-muted-foreground tabular-nums pb-2.5">
               {formatNumber(total)} match
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-20">Source</TableHead>
-                <TableHead className="w-36">Group</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-24">Source</TableHead>
+                <TableHead className="w-40">Group</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Brand</TableHead>
                 <TableHead>Retailer</TableHead>
@@ -122,34 +124,34 @@ export default function ProductsPage({ params }: { params: Promise<{ runId: stri
             <TableBody>
               {isFetching && !data ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  <TableRow key={i}><TableCell colSpan={8}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
                 ))
               ) : (
                 data?.products.map((p) => (
                   <TableRow
                     key={p.source_id}
-                    className="cursor-pointer hover:bg-muted/40"
+                    className="cursor-pointer hover:bg-muted/50"
                     onClick={() => router.push(`/runs/${runId}/products/${encodeURIComponent(p.source_id)}`)}
                   >
                     <TableCell className="font-mono text-xs">{p.source_id}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/runs/${runId}/groups/${p.dedupe_id}`} className="font-mono text-xs hover:underline">
+                      <Link href={`/runs/${runId}/groups/${p.dedupe_id}`} className="font-mono text-xs text-muted-foreground hover:text-foreground hover:underline">
                         {p.dedupe_id.slice(0, 14)}…
                       </Link>
                     </TableCell>
                     <TableCell className="max-w-[420px]"><div className="line-clamp-1">{p.name_raw}</div></TableCell>
-                    <TableCell className="text-sm">{p.brand_raw || <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell>{p.brand_raw || <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell><RetailerBadge retailer={p.retailer} /></TableCell>
                     <TableCell className="text-right tabular-nums">{formatCents(p.price_cents)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{p.cluster_confidence ? Number(p.cluster_confidence).toFixed(2) : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">{p.cluster_confidence ? Number(p.cluster_confidence).toFixed(2) : "—"}</TableCell>
                     <TableCell><DecisionBadge decision={p.decision} /></TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between p-3 border-t text-sm">
-            <div className="text-muted-foreground">Page {page} of {pages}</div>
+          <div className="flex items-center justify-between px-4 py-3 border-t text-xs">
+            <div className="text-muted-foreground tabular-nums">Page {page} of {pages}</div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>
                 <ChevronLeft className="h-4 w-4" /> Prev

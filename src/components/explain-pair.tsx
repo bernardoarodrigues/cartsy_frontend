@@ -41,7 +41,7 @@ function parseFeatureScores(raw: string | undefined): FeatureEntry[] {
 function FeatureBar({ label, value, max = 1, negative = false }: { label: string; value: number; max?: number; negative?: boolean }) {
   const pct = Math.min(100, Math.abs(value) / (max || 1) * 100);
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <div className="flex items-center gap-3 text-xs">
       <span className="w-44 font-mono text-muted-foreground truncate" title={label}>{label}</span>
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
         <div
@@ -49,7 +49,7 @@ function FeatureBar({ label, value, max = 1, negative = false }: { label: string
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-12 text-right tabular-nums">{value.toFixed(3)}</span>
+      <span className="w-12 text-right tabular-nums font-medium">{value.toFixed(3)}</span>
     </div>
   );
 }
@@ -57,11 +57,13 @@ function FeatureBar({ label, value, max = 1, negative = false }: { label: string
 function FeatureSection({ title, features, showNegative = false }: { title: string; features: FeatureEntry[]; showNegative?: boolean }) {
   if (features.length === 0) return null;
   return (
-    <div className="space-y-1.5">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{title}</div>
-      {features.map((f) => (
-        <FeatureBar key={f.feature} label={f.feature} value={f.value} negative={showNegative} />
-      ))}
+    <div className="space-y-2">
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{title}</div>
+      <div className="space-y-1.5">
+        {features.map((f) => (
+          <FeatureBar key={f.feature} label={f.feature} value={f.value} negative={showNegative} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -103,28 +105,28 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
 
   return (
     <Card>
-      <CardContent className="p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <div>
-            <Label>Source A</Label>
+      <CardContent className="p-5 space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-3 items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-muted-foreground">Source A</Label>
             {presets ? (
               <Select value={a} onValueChange={(v) => setA(v ?? "")}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{sourceIds.map((id) => <SelectItem key={id} value={id}>{id}</SelectItem>)}</SelectContent>
               </Select>
             ) : (
-              <Input className="mt-1 font-mono" value={a} onChange={(e) => setA(e.target.value)} />
+              <Input className="font-mono" value={a} onChange={(e) => setA(e.target.value)} />
             )}
           </div>
-          <div>
-            <Label>Source B</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-muted-foreground">Source B</Label>
             {presets ? (
               <Select value={b} onValueChange={(v) => setB(v ?? "")}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>{sourceIds.map((id) => <SelectItem key={id} value={id}>{id}</SelectItem>)}</SelectContent>
               </Select>
             ) : (
-              <Input className="mt-1 font-mono" value={b} onChange={(e) => setB(e.target.value)} />
+              <Input className="font-mono" value={b} onChange={(e) => setB(e.target.value)} />
             )}
           </div>
           <Button disabled={!a || !b || a === b} onClick={() => setSubmitted({ a, b })}>Explain</Button>
@@ -134,7 +136,7 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
         {isLoading && <Skeleton className="h-32 w-full" />}
 
         {data && (
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-3">
               <ProductMini title="Product A" data={data.product_a} />
               <ProductMini title="Product B" data={data.product_b} />
@@ -144,15 +146,15 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
               <Card className="bg-muted/40"><CardContent className="p-4 text-sm">{data.message}</CardContent></Card>
             ) : data.pair ? (
               <Card>
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-sm font-medium">Decision</span>
+                <CardContent className="p-5 space-y-5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Decision</span>
                     <Badge variant={(data.pair as Record<string, string>).decision === "merge" ? "default" : "outline"}>
                       {(data.pair as Record<string, string>).decision}
                     </Badge>
                     {mlScore !== undefined && (
                       <>
-                        <span className="text-sm text-muted-foreground">·</span>
+                        <span className="text-muted-foreground/50">·</span>
                         <span className="text-sm">
                           ML score <span className="font-semibold tabular-nums">{mlScore.toFixed(3)}</span>
                         </span>
@@ -168,14 +170,14 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
                   <FeatureSection title="Rule features" features={ruleFeatures} />
                   <FeatureSection title="Scores" features={primaryFeatures} />
 
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Explanation</div>
-                    <div className="text-xs font-mono whitespace-pre-wrap">{(data.pair as Record<string, string>).explanation}</div>
+                  <div className="space-y-1.5 pt-2 border-t">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Explanation</div>
+                    <div className="text-xs font-mono whitespace-pre-wrap leading-relaxed text-muted-foreground">{(data.pair as Record<string, string>).explanation}</div>
                   </div>
                   {(data.pair as Record<string, string>).blocking_keys && (
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Blocking keys</div>
-                      <div className="text-xs font-mono">{(data.pair as Record<string, string>).blocking_keys}</div>
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Blocking keys</div>
+                      <div className="text-xs font-mono text-muted-foreground">{(data.pair as Record<string, string>).blocking_keys}</div>
                     </div>
                   )}
                 </CardContent>
@@ -190,13 +192,13 @@ export function ExplainPair({ runId, sourceIds }: { runId: string; sourceIds: st
 
 function ProductMini({ title, data }: { title: string; data: Record<string, string> }) {
   return (
-    <Card className="bg-muted/30">
-      <CardContent className="p-3 text-sm space-y-1">
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">{title}</div>
-        <div className="font-medium line-clamp-2">{data.name_raw || data.source_id}</div>
-        <div className="text-xs text-muted-foreground flex flex-wrap gap-1.5">
-          <Badge variant="outline" className="text-xs">{data.retailer}</Badge>
-          {data.brand_raw && <Badge variant="secondary" className="text-xs">{data.brand_raw}</Badge>}
+    <Card className="bg-muted/30 ring-foreground/5">
+      <CardContent className="p-4 text-sm space-y-2">
+        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{title}</div>
+        <div className="font-medium line-clamp-2 leading-snug">{data.name_raw || data.source_id}</div>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="outline">{data.retailer}</Badge>
+          {data.brand_raw && <Badge variant="secondary" className="font-normal">{data.brand_raw}</Badge>}
         </div>
         <div className="text-xs font-mono text-muted-foreground">id: {data.source_id}</div>
       </CardContent>

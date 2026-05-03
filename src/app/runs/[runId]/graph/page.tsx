@@ -41,40 +41,49 @@ export default function GraphPage({ params }: { params: Promise<{ runId: string 
         title="Dataset Graph"
         description="Each node is a product. Connected clusters are dedupe groups; isolated nodes are unique products."
       />
-      <div className="p-6 space-y-4">
+      <div className="px-6 py-6 space-y-4">
         <Card>
-          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            <div className="md:col-span-3">
-              <Label>Min group size: {minGroupSize}</Label>
-              <Slider className="mt-3" min={2} max={25} step={1} value={[minGroupSize]} onValueChange={(v) => setMinGroupSize(Array.isArray(v) ? v[0] : (v as number))} />
+          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-end">
+            <div className="md:col-span-3 space-y-2 pb-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground">Min group size</Label>
+                <span className="text-xs tabular-nums font-medium">{minGroupSize}</span>
+              </div>
+              <Slider min={2} max={25} step={1} value={[minGroupSize]} onValueChange={(v) => setMinGroupSize(Array.isArray(v) ? v[0] : (v as number))} />
             </div>
-            <div className="md:col-span-3">
-              <Label>Max groups: {maxGroups}</Label>
-              <Slider className="mt-3" min={50} max={2000} step={50} value={[maxGroups]} onValueChange={(v) => setMaxGroups(Array.isArray(v) ? v[0] : (v as number))} />
+            <div className="md:col-span-3 space-y-2 pb-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground">Max groups</Label>
+                <span className="text-xs tabular-nums font-medium">{maxGroups}</span>
+              </div>
+              <Slider min={50} max={2000} step={50} value={[maxGroups]} onValueChange={(v) => setMaxGroups(Array.isArray(v) ? v[0] : (v as number))} />
             </div>
-            <div className="md:col-span-3 flex items-center gap-3 pt-6">
+            <div className="md:col-span-3 flex items-center gap-2.5 pb-2">
               <Switch id="singletons" checked={includeSingletons} onCheckedChange={setIncludeSingletons} />
-              <Label htmlFor="singletons" className="!normal-case !tracking-normal !text-foreground !font-medium">Include singletons</Label>
+              <Label htmlFor="singletons" className="text-sm font-medium cursor-pointer">Include singletons</Label>
             </div>
-            <div className="md:col-span-3">
-              <Label>Max singletons: {maxSingletons}</Label>
-              <Slider className="mt-3" disabled={!includeSingletons} min={100} max={5000} step={100} value={[maxSingletons]} onValueChange={(v) => setMaxSingletons(Array.isArray(v) ? v[0] : (v as number))} />
+            <div className="md:col-span-3 space-y-2 pb-1.5">
+              <div className="flex items-center justify-between">
+                <Label className={`text-xs font-medium ${includeSingletons ? "text-muted-foreground" : "text-muted-foreground/50"}`}>Max singletons</Label>
+                <span className={`text-xs tabular-nums font-medium ${includeSingletons ? "" : "text-muted-foreground/50"}`}>{maxSingletons}</span>
+              </div>
+              <Slider disabled={!includeSingletons} min={100} max={5000} step={100} value={[maxSingletons]} onValueChange={(v) => setMaxSingletons(Array.isArray(v) ? v[0] : (v as number))} />
             </div>
           </CardContent>
         </Card>
 
         {error && (
-          <Card className="border-destructive/40"><CardContent className="p-4 text-sm text-destructive">{(error as Error).message}</CardContent></Card>
+          <Card className="border-destructive/40 bg-destructive/5"><CardContent className="p-4 text-sm text-destructive">{(error as Error).message}</CardContent></Card>
         )}
 
         {data && (
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span><span className="text-foreground font-medium">{formatNumber(data.stats.node_count)}</span> nodes</span>
-            <span><span className="text-foreground font-medium">{formatNumber(data.stats.groups_returned)}</span> groups{data.stats.groups_truncated && " (truncated)"}</span>
-            {includeSingletons && <span><span className="text-foreground font-medium">{formatNumber(data.stats.singletons_returned)}</span> / {formatNumber(data.stats.singletons_total)} singletons</span>}
+          <div className="flex items-center gap-x-6 gap-y-2 text-xs text-muted-foreground flex-wrap px-1">
+            <span><span className="text-foreground font-semibold tabular-nums">{formatNumber(data.stats.node_count)}</span> nodes</span>
+            <span><span className="text-foreground font-semibold tabular-nums">{formatNumber(data.stats.groups_returned)}</span> groups{data.stats.groups_truncated && " (truncated)"}</span>
+            {includeSingletons && <span><span className="text-foreground font-semibold tabular-nums">{formatNumber(data.stats.singletons_returned)}</span> / <span className="tabular-nums">{formatNumber(data.stats.singletons_total)}</span> singletons</span>}
             <span className="ml-auto flex items-center gap-3">
-              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" /> grouped</span>
-              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-muted border" /> singleton</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-primary" /> grouped</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-muted border" /> singleton</span>
             </span>
           </div>
         )}

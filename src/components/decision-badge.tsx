@@ -12,7 +12,7 @@ export function DecisionBadge({ decision, className }: { decision: string; class
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium tabular-nums",
+        "inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium tabular-nums leading-5",
         cls,
         className,
       )}
@@ -33,12 +33,12 @@ export function RetailerBadge({ retailer, className }: { retailer: string; class
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-0.5 text-xs font-medium text-foreground",
+        "inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-0.5 text-[11px] font-medium text-foreground leading-5",
         className,
       )}
     >
       <span
-        className="h-1.5 w-1.5 rounded-full"
+        className="h-1.5 w-1.5 rounded-full shrink-0"
         style={{ background: `oklch(0.6 0.12 ${hue})` }}
       />
       {retailer}

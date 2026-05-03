@@ -19,19 +19,31 @@ export function StatCard({
 }) {
   const accent = tone === "primary";
   return (
-    <Card className="relative">
-      <CardContent className="p-6">
+    <Card>
+      <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-sm uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
-            <div className="mt-2 text-4xl font-semibold tabular-nums">{value}</div>
-            {hint && <div className="mt-1.5 text-sm text-muted-foreground">{hint}</div>}
+          <div className="min-w-0 space-y-1">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+              {label}
+            </div>
+            <div className="text-2xl font-semibold tabular-nums tracking-tight leading-none">
+              {value}
+            </div>
+            {hint && (
+              <div className="text-xs text-muted-foreground leading-snug pt-0.5">
+                {hint}
+              </div>
+            )}
           </div>
           {icon && (
-            <div className={cn(
-              "rounded-lg p-2.5 shrink-0",
-              accent ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-            )}>
+            <div
+              className={cn(
+                "rounded-md p-2 shrink-0",
+                accent
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
               {icon}
             </div>
           )}

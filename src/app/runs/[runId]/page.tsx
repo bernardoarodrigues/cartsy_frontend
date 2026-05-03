@@ -98,15 +98,15 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
   return (
     <>
       <PageHeader
-        title={<span className="font-mono">{runId}</span>}
+        title={<span className="font-mono text-base sm:text-lg font-semibold">{runId}</span>}
         description="Run summary, metrics, and dedupe quality."
       />
-      <div className="p-6 space-y-6">
-        {error && <Card className="border-destructive/40"><CardContent className="p-4 text-sm text-destructive">{(error as Error).message}</CardContent></Card>}
+      <div className="px-6 py-6 space-y-6">
+        {error && <Card className="border-destructive/40 bg-destructive/5"><CardContent className="p-4 text-sm text-destructive">{(error as Error).message}</CardContent></Card>}
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[104px]" />)}
           </div>
         ) : data ? (
           <>
@@ -118,7 +118,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
             </div>
 
             <Card>
-              <CardHeader><CardTitle className="text-base">Pipeline funnel</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm font-semibold">Pipeline funnel</CardTitle></CardHeader>
               <CardContent>
                 <FunnelStrip
                   steps={[
@@ -135,7 +135,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
 
             <div className="grid lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle className="text-base">Confidence distribution</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Confidence distribution</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer
                     config={{ count: { label: "Pairs", color: "var(--primary)" } } satisfies ChartConfig}
@@ -155,7 +155,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Threshold sensitivity</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Threshold sensitivity</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer
                     config={{ merges: { label: "Merges", color: "var(--primary)" } } satisfies ChartConfig}
@@ -173,7 +173,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Top quality flags</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Top quality flags</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer
                     config={{ count: { label: "Records", color: "var(--primary)" } } satisfies ChartConfig}
@@ -191,7 +191,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Decision reasons</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Decision reasons</CardTitle></CardHeader>
                 <CardContent>
                   <ChartContainer
                     config={{
@@ -215,7 +215,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
 
             <div className="grid lg:grid-cols-2 gap-6">
               <Card>
-                <CardHeader><CardTitle className="text-base">Blocking</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Blocking</CardTitle></CardHeader>
                 <CardContent>
                   <Table>
                     <TableBody>
@@ -231,7 +231,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Largest groups</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Largest groups</CardTitle></CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
@@ -265,8 +265,8 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
             {lowestConfidenceMerges && lowestConfidenceMerges.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
                     Lowest-confidence accepted merges
                   </CardTitle>
                 </CardHeader>
@@ -293,7 +293,7 @@ export default function RunOverviewPage({ params }: { params: Promise<{ runId: s
                             <Badge variant="secondary">{g.num_offers}</Badge>
                           </TableCell>
                           <TableCell className="text-right tabular-nums">
-                            <span className="text-yellow-600 dark:text-yellow-400 font-semibold">{g.cluster_confidence.toFixed(3)}</span>
+                            <span className="text-warning font-semibold">{g.cluster_confidence.toFixed(3)}</span>
                           </TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground max-w-[240px]">
                             <div className="line-clamp-2">{(g.merge_reasons ?? []).join("; ")}</div>
@@ -320,10 +320,10 @@ function FunnelStrip({ steps }: { steps: { label: string; value: number }[] }) {
       {steps.map((s, i) => {
         const pct = (s.value / max) * 100;
         return (
-          <div key={s.label} className="rounded-lg border p-4 bg-card">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{s.label}</div>
-            <div className="mt-1.5 text-2xl font-semibold tabular-nums">{formatNumber(s.value)}</div>
-            <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+          <div key={s.label} className="rounded-md border p-3 bg-card">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{s.label}</div>
+            <div className="mt-1 text-xl font-semibold tabular-nums tracking-tight">{formatNumber(s.value)}</div>
+            <div className="mt-2.5 h-1.5 rounded-full bg-muted overflow-hidden">
               <div className={`h-full rounded-full ${colors[i % colors.length]}`} style={{ width: `${pct}%` }} />
             </div>
           </div>

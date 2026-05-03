@@ -25,6 +25,7 @@ function qs(params: Record<string, unknown>): string {
 export type RunSummary = {
   run_id: string;
   path: string;
+  model_id?: string | null;
   input_records: number | null;
   final_unique_products: number | null;
   duplicate_records_grouped: number | null;
@@ -280,6 +281,20 @@ export type ModelInfoResponse = {
   top_risky_clusters: Array<Record<string, string>>;
 };
 
+export type ModelRun = {
+  model_id: string;
+  path: string;
+  train_pairs?: number | null;
+  test_pairs?: number | null;
+  test_f1?: number | null;
+  test_precision?: number | null;
+  test_recall?: number | null;
+  threshold?: number | null;
+  created_at?: string | null;
+};
+
+export type ModelsResponse = { models: ModelRun[] };
+
 export type ArtifactSearchResponse = {
   run_id: string;
   query: string;
@@ -297,7 +312,8 @@ export type ExplainResponse = {
 
 export const api = {
   health: () => request<{ ok: boolean; runs_root: string }>("/health"),
-  model: () => request<ModelInfoResponse>("/model"),
+  listModels: () => request<ModelsResponse>("/models"),
+  model: (modelId: string) => request<ModelInfoResponse>(`/models/${modelId}`),
   listRuns: () => request<RunsResponse>("/runs"),
   summary: (runId: string) => request<SummaryReport>(`/runs/${runId}/summary`),
   products: (runId: string, params: Record<string, unknown> = {}) =>

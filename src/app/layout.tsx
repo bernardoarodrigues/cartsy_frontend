@@ -19,7 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Providers>
           <div className="flex min-h-screen">
             <AppSidebar />
-            <main className="flex-1 min-w-0">{children}</main>
+            <main className="flex-1 min-w-0 flex flex-col">{children}</main>
           </div>
         </Providers>
       </body>
