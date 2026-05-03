@@ -15,6 +15,7 @@ Model metrics
 ## Development
 
 ```bash
+npm install
 npm run dev
 ```
 
