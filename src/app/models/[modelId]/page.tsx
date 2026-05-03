@@ -26,7 +26,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Activity, Binary, Brain, Target } from "lucide-react";
+import { Activity, Binary, Brain, ChevronLeft, Target } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function ModelDetailPage({ params }: { params: Promise<{ modelId: string }> }) {
   const { modelId } = use(params);
@@ -50,7 +52,16 @@ export default function ModelDetailPage({ params }: { params: Promise<{ modelId:
   return (
     <>
       <PageHeader
-        title={<span className="font-mono text-base sm:text-lg font-semibold">{modelId}</span>}
+        title={
+          <span className="flex items-center gap-1.5">
+            <Link href="/models">
+              <Button variant="ghost" size="icon" className="h-7 w-7 -ml-1">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <span className="font-mono text-base sm:text-lg font-semibold">{modelId}</span>
+          </span>
+        }
         description="Logistic regression scorer — training metrics, feature weights, and threshold calibration."
       />
       <div className="px-6 py-6 space-y-6">
