@@ -2,6 +2,16 @@
 
 Frontend for inspecting and analyzing Cartsy's product deduplication pipeline. Browse runs, explore dedupe groups and pairs, review model metrics, and visualize the product graph.
 
+## Dashboard
+
+Dedupe Runs
+
+![Run dashboard](public/run-dashboard.jpeg)
+
+Model metrics
+
+![Model dashboard](public/model-dashboard.jpeg)
+
 ## Development
 
 ```bash
